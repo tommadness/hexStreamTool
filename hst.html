@@ -1,0 +1,110 @@
+<head>
+    <style>
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            margin: 0px auto;
+        }
+    </style>
+</head>
+
+<body></body>
+<script src="https://cdn.jsdelivr.net/npm/@streamerbot/client/dist/streamerbot-client.js"></script>
+
+<script>
+    const urlParamsString = window.location.search;
+    const params = new URLSearchParams(urlParamsString);
+    const client = new StreamerbotClient();
+    client.on('Custom.*', ({ event, data }) => {
+        console.log(data);
+        switch (data.eventName) {
+            case "overlay.video":
+                videoOverlay(data.args.src, data.args.posX, data.args.posY, data.args.width, data.args.volume, data.args.dmca);
+                break;
+            case "overlay.image":
+                imageOverlay(data.args.src, data.args.posX, data.args.posY, data.args.width);
+                break;
+            case "overlay.text":
+                textOverlay(data.args.text, data.args.class, data.args.css, data.args.posX, data.args.posY);
+                break;
+            case "overlay.audio":
+                audioOverlay(data.args.src, data.args.volume);
+                break;
+        }
+    });
+
+    function videoOverlay(src, posX, posY, width, volume = 1.0, dmca) {
+        if(dmca != params.get("dmca")){
+            return;
+        }
+        const container = document.body;
+        const video = document.createElement("video");
+        video.src = "media/" + src;
+        video.onended = function () { video.remove(); }
+        video.onerror = function () { video.remove(); }
+
+        positionElement(video, posX, posY);
+        scaleElement(video, width);
+
+        video.volume = volume;
+
+        video.autoplay;
+
+        container.append(video);
+        video.play();
+    }
+
+    function imageOverlay(src, posX, posY, width) {
+        const container = document.body;
+        const img = document.createElement("img");
+        img.src = ("");
+        img.onerror = function () { img.remove(); }
+        positionElement(img, posX, posY);
+        scaleElement(img, width);
+        container.append(img);
+        img.src = "media/" + src;
+        setTimeout(function () { img.remove(); }, data.duration * 1000);
+    }
+
+    function textOverlay(text, class, css, posX, posY) {
+        const container = document.body;
+        const div = document.createElement("div");
+        cssClass !== "" ? div.classList.add(cssClass) : {}
+        div.style = "width: 100%; height: 100%";
+        const span = document.createElement("span");
+        span.classList.add("text");
+        span.innerText = text;
+        span.style.cssText += css;
+        positionElement(span, posX, posY);
+        span.style.position = "relative";
+        div.append(span);
+        container.append(div);
+        setTimeout(function () { div.remove(); }, data.duration * 1000);
+
+    }
+
+    function audioOverlay(src, volume=1.0) {
+        const container = document.body;
+        const audio = document.createElement("audio");
+        audio.src = src;
+        audio.volume = volume;
+
+        audio.autoplay = true;
+        container.append(audio);
+        audio.play();
+    }
+
+    function positionElement(element, posX, posY) {
+        element.style.position = "absolute";
+        element.style.left = posX + "%";
+        element.style.top = posY + "%";
+    }
+
+    function scaleElement(element, width) {
+        if (width !== "") {
+            element.width = width;
+        }
+    }
+
+</script>
